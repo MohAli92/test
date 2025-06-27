@@ -38,8 +38,8 @@ const EditPost: React.FC = () => {
           setPhoto(foundPost.photo || '');
           setCity(foundPost.city || '');
           setAddress(foundPost.address || '');
-          setPickupTime(foundPost.time ? new Date(foundPost.time) : new Date());
-          setIngredients(foundPost.ingredients || []);
+          setPickupTime(foundPost.time ? new Date(foundPost.time).toISOString().slice(0, 16) : '');
+          setIngredients((foundPost.ingredients || []).join(', '));
           setAllergies(foundPost.allergies || []);
         } else {
           setError('Post not found');
@@ -55,7 +55,9 @@ const EditPost: React.FC = () => {
     fetchPost();
   }, [id]);
 
-  const handlePhotoUpload = async (file: File) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const formData = new FormData();
     formData.append('image', file);
 
@@ -83,7 +85,7 @@ const EditPost: React.FC = () => {
         city,
         address,
         time: pickupTime,
-        ingredients: ingredients.map(i => `${i.name} (${i.quantity})`),
+        ingredients: ingredients.split(',').map(i => i.trim()),
         allergies
       });
       navigate('/');

@@ -155,22 +155,67 @@ router.post('/register', async (req, res) => {
 // Endpoint: إرسال كود التحقق على الواتساب
 router.post('/send-whatsapp-code', async (req, res) => {
   const { phone } = req.body;
-  if (!phone) return res.status(400).json({ error: 'Phone number is required' });
+  
+  if (!phone) {
+    return res.status(400).json({ error: 'Phone number is required' });
+  }
+
   try {
-    await sendVerificationCode(phone);
-    res.json({ success: true, message: 'Verification code sent via WhatsApp' });
+    console.log(`📞 Received WhatsApp code request for phone: ${phone}`);
+    
+    const result = await sendVerificationCode(phone);
+    
+    console.log(`✅ WhatsApp code sent successfully for: ${phone}`);
+    res.json({ 
+      success: true, 
+      message: 'Verification code sent via WhatsApp',
+      messageSid: result.messageSid 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to send WhatsApp code', details: err.message });
+    console.error(`❌ WhatsApp code sending failed for ${phone}:`, err);
+    
+    // Log detailed error information for debugging
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      status: err.status,
+      stack: err.stack
+    });
+    
+    res.status(500).json({ 
+      error: err.message || 'Failed to send WhatsApp code',
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
 // Endpoint: تحقق من كود الواتساب
-router.post('/verify-whatsapp-code', (req, res) => {
+router.post('/verify-whatsapp-code', async (req, res) => {
   const { phone, code } = req.body;
-  if (!phone || !code) return res.status(400).json({ error: 'Phone and code are required' });
-  const valid = verifyCode(phone, code);
-  if (!valid) return res.status(400).json({ error: 'Invalid or expired code' });
-  res.json({ success: true });
+  
+  if (!phone || !code) {
+    return res.status(400).json({ error: 'Phone and code are required' });
+  }
+
+  try {
+    console.log(`🔍 Verifying WhatsApp code for phone: ${phone}`);
+    
+    const valid = verifyCode(phone, code);
+    
+    if (!valid) {
+      console.log(`❌ Invalid WhatsApp code for phone: ${phone}`);
+      return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+    
+    console.log(`✅ WhatsApp code verified successfully for phone: ${phone}`);
+    res.json({ success: true, message: 'Code verified successfully' });
+  } catch (err) {
+    console.error(`❌ WhatsApp code verification failed for ${phone}:`, err);
+    res.status(500).json({ 
+      error: 'Failed to verify code',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 });
 
 module.exports = router;
