@@ -13,7 +13,7 @@ import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Alert from '@mui/material/Alert';
-import axios from 'axios';
+import api from '../utils/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { Restaurant } from '@mui/icons-material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -53,7 +53,7 @@ const Home: React.FC = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${getApiUrl()}/api/posts`);
+      const response = await api.get('/posts');
       setPosts(response.data);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -74,7 +74,7 @@ const Home: React.FC = () => {
   const handleDelete = async (postId: string) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await axios.delete(`${getApiUrl()}/api/posts/${postId}`);
+        await api.delete(`/posts/${postId}`);
         fetchPosts();
       } catch (error) {
         console.error('Error deleting post:', error);
@@ -84,7 +84,7 @@ const Home: React.FC = () => {
 
   const handleReserve = async (postId: string) => {
     try {
-      const response = await axios.patch(`${getApiUrl()}/api/posts/${postId}/reserve`);
+      const response = await api.patch(`/posts/${postId}/reserve`);
       fetchPosts();
     } catch (error) {
       console.error('Error reserving post:', error);

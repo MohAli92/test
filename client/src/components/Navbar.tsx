@@ -7,7 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import PersonIcon from '@mui/icons-material/Person';
 import { useAuth } from '../contexts/AuthContext';
 import { getApiUrl } from '../utils/api';
-import axios from 'axios';
+import api from '../utils/axios';
 import Tooltip from '@mui/material/Tooltip';
 
 const Navbar: React.FC = () => {
@@ -21,7 +21,7 @@ const Navbar: React.FC = () => {
       if (!user?._id) return;
       
       try {
-        const response = await axios.get(`${getApiUrl()}/api/messages/unread/${user._id}`);
+        const response = await api.get(`${getApiUrl()}/api/messages/unread/${user._id}`);
         setUnreadCount(response.data.count || 0);
       } catch (error) {
         console.error('Error fetching unread count:', error);

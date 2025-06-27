@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
 import { Box, Typography, Paper, Button, CircularProgress, Chip, Grid, Card, CardContent, CardMedia } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { Message as MessageIcon, LocationOn, AccessTime, Restaurant } from '@mui/icons-material';
-import { getApiUrl } from '../utils/api';
 
 interface Post {
   _id: string;
@@ -36,7 +35,7 @@ const PostDetails: React.FC = () => {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const postRes = await axios.get(`${getApiUrl()}/api/posts`);
+        const postRes = await api.get('/posts');
         const foundPost = postRes.data.find((p: any) => p._id === id);
         if (foundPost) {
           setPost(foundPost);
@@ -55,13 +54,12 @@ const PostDetails: React.FC = () => {
   }, [id]);
 
   const handleStartChat = async () => {
-    if (!user) {
+    if (!user || !post) {
       alert('Please login to start a chat');
       return;
     }
-
     try {
-      const response = await axios.post(`${getApiUrl()}/api/chat/start`, {
+      await api.post('/chat/start', {
         postId: post._id,
         userId: user._id
       });
@@ -73,8 +71,9 @@ const PostDetails: React.FC = () => {
   };
 
   const handleReserve = async () => {
+    if (!post) return;
     try {
-      await axios.patch(`${getApiUrl()}/api/posts/${post._id}/reserve`);
+      await api.patch(`/posts/${post._id}/reserve`);
       setPost({ ...post, reserved: true });
       alert('Post reserved successfully!');
     } catch (error: any) {
@@ -84,9 +83,10 @@ const PostDetails: React.FC = () => {
   };
 
   const handleDelete = async () => {
+    if (!post) return;
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await axios.delete(`${getApiUrl()}/api/posts/${post._id}`);
+        await api.delete(`/posts/${post._id}`);
         navigate('/');
       } catch (error: any) {
         console.error('Error deleting post:', error);

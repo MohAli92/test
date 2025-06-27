@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getApiUrl } from '../utils/api';
+import api from '../utils/axios';
 import {
   Container,
   Typography,
@@ -22,7 +23,6 @@ import {
   Chip,
 } from '@mui/material';
 import { Person as PersonIcon, Restaurant as RestaurantIcon, Message as MessageIcon } from '@mui/icons-material';
-import axios from 'axios';
 
 interface Chat {
   _id: string;
@@ -63,7 +63,7 @@ const Messages: React.FC = () => {
       
       try {
         setLoading(true);
-        const response = await axios.get(`${getApiUrl()}/api/chat/user/${user._id}`);
+        const response = await api.get(`/chat/user/${user._id}`);
         setChats(response.data);
       } catch (error) {
         console.error('Error fetching chats:', error);
@@ -100,10 +100,10 @@ const Messages: React.FC = () => {
         text: message
       };
 
-      await axios.post(`${getApiUrl()}/api/chat/${selectedChat.post._id}/message`, messageData);
+      await api.post(`/chat/${selectedChat.post._id}/message`, messageData);
       
       // Refresh chat messages
-      const chatResponse = await axios.get(`${getApiUrl()}/api/chat/${selectedChat.post._id}/${user._id}/${otherUser._id}`);
+      const chatResponse = await api.get(`/chat/${selectedChat.post._id}/${user._id}/${otherUser._id}`);
       const updatedChat = { ...selectedChat, messages: chatResponse.data };
       setSelectedChat(updatedChat);
       

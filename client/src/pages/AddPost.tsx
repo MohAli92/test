@@ -17,7 +17,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { PhotoCamera, Add as AddIcon, Delete as DeleteIcon, Restaurant, CloudUpload } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../utils/axios';
 
 interface Ingredient {
   name: string;
@@ -47,7 +47,7 @@ const AddPost: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${getApiUrl()}/api/posts/upload`, formData);
+      const response = await api.post('/posts/upload', formData);
       setPhoto(response.data.imageUrl);
       setError(null);
     } catch (error) {
@@ -139,7 +139,7 @@ const AddPost: React.FC = () => {
         }
       };
 
-      const response = await axios.post(`${getApiUrl()}/api/posts`, postData);
+      const response = await api.post('/posts', postData);
       navigate('/');
     } catch (error: any) {
       console.error('Error creating post:', error);

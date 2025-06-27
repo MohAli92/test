@@ -18,7 +18,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { Person, Edit, Delete, Save, Cancel } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
 import { getApiUrl } from '../utils/api';
 
 interface UserProfile {
@@ -45,7 +45,7 @@ const Profile: React.FC = () => {
     const fetchProfile = async () => {
       try {
         if (!user?._id) return;
-        const profileResponse = await axios.get(`${getApiUrl()}/api/users/${user._id}`);
+        const profileResponse = await api.get(`${getApiUrl()}/api/users/${user._id}`);
         setProfile(profileResponse.data);
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -63,7 +63,7 @@ const Profile: React.FC = () => {
     
     try {
       setLoading(true);
-      const response = await axios.put(`${getApiUrl()}/api/users/${profile._id}`, profile);
+      const response = await api.put(`${getApiUrl()}/api/users/${profile._id}`, profile);
       setProfile(response.data);
       alert('Profile updated successfully!');
     } catch (error: any) {
@@ -79,7 +79,7 @@ const Profile: React.FC = () => {
     
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       try {
-        await axios.delete(`${getApiUrl()}/api/users/${profile._id}`);
+        await api.delete(`${getApiUrl()}/api/users/${profile._id}`);
         logout();
       } catch (error: any) {
         console.error('Error deleting account:', error);
@@ -177,7 +177,7 @@ const Profile: React.FC = () => {
                       if (user?._id) {
                         const refreshProfile = async () => {
                           try {
-                            const profileResponse = await axios.get(`${getApiUrl()}/api/users/${user._id}`);
+                            const profileResponse = await api.get(`${getApiUrl()}/api/users/${user._id}`);
                             setProfile(profileResponse.data);
                           } catch (error) {
                             console.error('Error refreshing profile:', error);

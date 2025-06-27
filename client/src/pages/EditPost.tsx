@@ -4,7 +4,7 @@ import {
   Container, Paper, Typography, TextField, Button, Box, Stack, Alert, CircularProgress
 } from '@mui/material';
 import { getApiUrl } from '../utils/api';
-import axios from 'axios';
+import api from '../utils/axios';
 
 const EditPost: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +29,7 @@ const EditPost: React.FC = () => {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${getApiUrl()}/api/posts`);
+        const response = await api.get('/posts');
         const foundPost = response.data.find((p: any) => p._id === id);
         if (foundPost) {
           setPost(foundPost);
@@ -63,7 +63,7 @@ const EditPost: React.FC = () => {
 
     try {
       setSaving(true);
-      const response = await axios.post(`${getApiUrl()}/api/posts/upload`, formData);
+      const response = await api.post('/posts/upload', formData);
       setPhoto(response.data.imageUrl);
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -78,7 +78,7 @@ const EditPost: React.FC = () => {
     
     try {
       setSaving(true);
-      await axios.patch(`${getApiUrl()}/api/posts/${id}`, {
+      await api.patch(`/posts/${id}`, {
         title,
         description,
         photo,

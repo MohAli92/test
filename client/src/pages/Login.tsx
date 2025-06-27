@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getApiUrl } from '../utils/api';
-import axios from 'axios';
+import api from '../utils/axios';
 import {
   Box, Button, Container, TextField, Typography, Paper, Stack, Alert, Link,
   FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, InputAdornment
@@ -52,7 +52,7 @@ const Login: React.FC = () => {
   const handleSendWhatsAppCode = async () => {
     try {
       setWhatsAppLoading(true);
-      await axios.post(`${getApiUrl()}/api/auth/send-whatsapp-code`, { phone });
+      await api.post(`${getApiUrl()}/api/auth/send-whatsapp-code`, { phone });
       setWhatsAppCodeSent(true);
       alert('WhatsApp verification code sent!');
     } catch (error: any) {
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
   const handleVerifyWhatsAppCode = async () => {
     try {
       setWhatsAppLoading(true);
-      await axios.post(`${getApiUrl()}/api/auth/verify-whatsapp-code`, { phone, code: whatsAppCode });
+      await api.post(`${getApiUrl()}/api/auth/verify-whatsapp-code`, { phone, code: whatsAppCode });
       setPhoneVerified(true);
       alert('Phone number verified successfully!');
     } catch (error: any) {
