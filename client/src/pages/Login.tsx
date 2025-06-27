@@ -23,13 +23,6 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [whatsAppCode, setWhatsAppCode] = useState('');
-  const [codeSent, setCodeSent] = useState(false);
-  const [codeVerified, setCodeVerified] = useState(false);
-  const [whatsAppLoading, setWhatsAppLoading] = useState(false);
-  const [whatsAppCodeSent, setWhatsAppCodeSent] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
   const navigate = useNavigate();
   const { login, signup } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
@@ -47,34 +40,6 @@ const Login: React.FC = () => {
   const handleGenderChange = (event: SelectChangeEvent) => {
     setGender(event.target.value);
     setError(null);
-  };
-
-  const handleSendWhatsAppCode = async () => {
-    try {
-      setWhatsAppLoading(true);
-      await api.post(`${getApiUrl()}/api/auth/send-whatsapp-code`, { phone });
-      setWhatsAppCodeSent(true);
-      alert('WhatsApp verification code sent!');
-    } catch (error: any) {
-      console.error('Error sending WhatsApp code:', error);
-      alert(error.response?.data?.error || 'Failed to send WhatsApp code');
-    } finally {
-      setWhatsAppLoading(false);
-    }
-  };
-
-  const handleVerifyWhatsAppCode = async () => {
-    try {
-      setWhatsAppLoading(true);
-      await api.post(`${getApiUrl()}/api/auth/verify-whatsapp-code`, { phone, code: whatsAppCode });
-      setPhoneVerified(true);
-      alert('Phone number verified successfully!');
-    } catch (error: any) {
-      console.error('Error verifying WhatsApp code:', error);
-      alert(error.response?.data?.error || 'Failed to verify WhatsApp code');
-    } finally {
-      setWhatsAppLoading(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,16 +84,6 @@ const Login: React.FC = () => {
         return;
       }
 
-      if (!phone || phone.length < 8) {
-        setError('Please enter a valid WhatsApp number (with country code)');
-        return;
-      }
-
-      if (!codeVerified) {
-        setError('Please verify your WhatsApp number first');
-        return;
-      }
-
       // Check if user is at least 13 years old
       const today = new Date();
       const age = today.getFullYear() - dateOfBirth.getFullYear();
@@ -150,7 +105,6 @@ const Login: React.FC = () => {
             firstName,
             lastName,
             gender,
-            phone,
             phoneVerified: true
         };
 
@@ -172,15 +126,13 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (
       isSignUp &&
-      codeVerified &&
       firstName &&
       lastName &&
       gender &&
       dateOfBirth &&
       email &&
       password &&
-      confirmPassword &&
-      phone
+      confirmPassword
     ) {
       // نفذ التسجيل تلقائيًا
       if (formRef.current) {
@@ -188,7 +140,7 @@ const Login: React.FC = () => {
       }
     }
     // eslint-disable-next-line
-  }, [codeVerified]);
+  }, [isSignUp]);
 
   return (
     <Container maxWidth="xs">
@@ -364,114 +316,12 @@ const Login: React.FC = () => {
                     }}
                   />
                 </LocalizationProvider>
-                <TextField
-                  label="WhatsApp Number"
-                  value={phone}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                    setPhone(e.target.value);
-                    setError(null);
-                  }}
-                  fullWidth
-                  required
-                  error={!!error && error.toLowerCase().includes('whatsapp')}
-                  helperText={error && error.toLowerCase().includes('whatsapp') ? error : "Enter your WhatsApp number with country code (e.g. +201234567890)"}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Phone />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mt: 1 }}
-                />
-                {/* WhatsApp Instructions Box */}
-                {isSignUp && (
-                  <Box sx={{ border: '2px solid #25d366', borderRadius: 3, background: 'linear-gradient(90deg, #eaf6ff 60%, #d4f8e8 100%)', p: 2, mb: 2, mt: 1, boxShadow: '0 2px 12px rgba(60,72,88,0.10)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography variant="body1" sx={{ mb: 1, color: '#075e54', fontWeight: 500, textAlign: 'center' }}>
-                      <span role="img" aria-label="whatsapp">💬</span> To receive the code via WhatsApp, send <b>join government-think</b> to <b style={{ color: '#25d366' }}>+14155238886</b> first.
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, width: '100%' }}>
-                      <Box
-                        sx={{
-                          bgcolor: '#fff',
-                          borderRadius: 2,
-                          px: 2,
-                          py: 1,
-                          fontFamily: 'monospace',
-                          fontSize: 18,
-                          flexGrow: 1,
-                          border: '1px solid #eee',
-                          mr: 1,
-                          textAlign: 'center',
-                          letterSpacing: 1.5
-                        }}
-                      >
-                        join government-think
-                      </Box>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{ minWidth: 0, px: 1, borderColor: '#25d366', color: '#25d366', '&:hover': { borderColor: '#128c7e', background: '#eafaf1' } }}
-                        onClick={() => {
-                          navigator.clipboard.writeText('join government-think');
-                        }}
-                        title="Copy code"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24" style={{ fill: '#25d366' }}><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                      </Button>
-                    </Box>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      sx={{ bgcolor: '#25d366', color: '#fff', fontWeight: 700, letterSpacing: 1, '&:hover': { bgcolor: '#128c7e' }, boxShadow: '0 2px 8px #25d36633' }}
-                      href="https://wa.me/14155238886"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span style={{ marginRight: 8, fontWeight: 900 }}>WhatsApp</span> OPEN CHAT
-                    </Button>
-                  </Box>
-                )}
-                {isSignUp && !codeSent && (
-                  <Button
-                    variant="outlined"
-                    onClick={handleSendWhatsAppCode}
-                    disabled={loading || !phone || phone.length < 8}
-                    sx={{ fontWeight: 600 }}
-                  >
-                    Send WhatsApp Code
-                  </Button>
-                )}
-                {isSignUp && codeSent && !codeVerified && (
-                  <Box>
-                    <TextField
-                      label="Verification Code"
-                      value={whatsAppCode}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setWhatsAppCode(e.target.value)}
-                      fullWidth
-                      required
-                      sx={{ mt: 1 }}
-                      helperText="Enter the 6-digit code sent to your WhatsApp"
-                    />
-                    <Button
-                      variant="outlined"
-                      onClick={handleVerifyWhatsAppCode}
-                      disabled={loading || !whatsAppCode || whatsAppCode.length !== 6}
-                      sx={{ fontWeight: 600, mt: 1 }}
-                    >
-                      Verify Code
-                    </Button>
-                  </Box>
-                )}
-                {isSignUp && codeVerified && (
-                  <Alert severity="success">WhatsApp number verified successfully!</Alert>
-                )}
               </>
             )}
             <Button
               type="submit"
               variant="contained"
-              disabled={loading || !email || !password || (isSignUp && (!confirmPassword || !gender || !dateOfBirth || !firstName || !lastName || !phone || !codeVerified))}
+              disabled={loading || !email || !password || (isSignUp && (!confirmPassword || !gender || !dateOfBirth || !firstName || !lastName))}
               sx={{ fontWeight: 600, py: 1.2, fontSize: '1rem', mt: 1 }}
             >
               {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
@@ -497,10 +347,6 @@ const Login: React.FC = () => {
                   setLastName('');
                   setGender('');
                   setDateOfBirth(null);
-                  setPhone('');
-                  setWhatsAppCode('');
-                  setCodeSent(false);
-                  setCodeVerified(false);
                 }}
                 sx={{ textDecoration: 'none', fontWeight: 600 }}
               >

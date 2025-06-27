@@ -9,7 +9,6 @@ interface User {
   lastName: string;
   gender: string;
   phone: string;
-  phoneVerified: boolean;
   createdAt: string;
 }
 

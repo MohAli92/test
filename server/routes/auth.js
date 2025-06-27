@@ -2,12 +2,11 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { sendVerificationCode, verifyCode } = require('../utils/whatsapp');
 
 // Sign up endpoint
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, firstName, lastName, gender, phone, phoneVerified } = req.body;
+    const { email, password, firstName, lastName, gender, phone } = req.body;
     
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -23,7 +22,6 @@ router.post('/signup', async (req, res) => {
       lastName: lastName || '',
       gender: gender || 'prefer-not-to-say',
       phone: phone || '',
-      phoneVerified: !!phoneVerified
     });
 
     await user.save();
@@ -43,7 +41,6 @@ router.post('/signup', async (req, res) => {
       lastName: user.lastName,
       gender: user.gender,
       phone: user.phone,
-      phoneVerified: user.phoneVerified,
       createdAt: user.createdAt
     };
 
@@ -90,7 +87,6 @@ router.post('/signin', async (req, res) => {
       lastName: user.lastName,
       gender: user.gender,
       phone: user.phone,
-      phoneVerified: user.phoneVerified,
       createdAt: user.createdAt
     };
 
@@ -149,72 +145,6 @@ router.post('/register', async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
-  }
-});
-
-// Endpoint: إرسال كود التحقق على الواتساب
-router.post('/send-whatsapp-code', async (req, res) => {
-  const { phone } = req.body;
-  
-  if (!phone) {
-    return res.status(400).json({ error: 'Phone number is required' });
-  }
-
-  try {
-    console.log(`📞 Received WhatsApp code request for phone: ${phone}`);
-    
-    const result = await sendVerificationCode(phone);
-    
-    console.log(`✅ WhatsApp code sent successfully for: ${phone}`);
-    res.json({ 
-      success: true, 
-      message: 'Verification code sent via WhatsApp',
-      messageSid: result.messageSid 
-    });
-  } catch (err) {
-    console.error(`❌ WhatsApp code sending failed for ${phone}:`, err);
-    
-    // Log detailed error information for debugging
-    console.error('Error details:', {
-      message: err.message,
-      code: err.code,
-      status: err.status,
-      stack: err.stack
-    });
-    
-    res.status(500).json({ 
-      error: err.message || 'Failed to send WhatsApp code',
-      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
-  }
-});
-
-// Endpoint: تحقق من كود الواتساب
-router.post('/verify-whatsapp-code', async (req, res) => {
-  const { phone, code } = req.body;
-  
-  if (!phone || !code) {
-    return res.status(400).json({ error: 'Phone and code are required' });
-  }
-
-  try {
-    console.log(`🔍 Verifying WhatsApp code for phone: ${phone}`);
-    
-    const valid = verifyCode(phone, code);
-    
-    if (!valid) {
-      console.log(`❌ Invalid WhatsApp code for phone: ${phone}`);
-      return res.status(400).json({ error: 'Invalid or expired code' });
-    }
-    
-    console.log(`✅ WhatsApp code verified successfully for phone: ${phone}`);
-    res.json({ success: true, message: 'Code verified successfully' });
-  } catch (err) {
-    console.error(`❌ WhatsApp code verification failed for ${phone}:`, err);
-    res.status(500).json({ 
-      error: 'Failed to verify code',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
   }
 });
 
