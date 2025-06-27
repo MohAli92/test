@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 
 interface User {
   _id: string;
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/profile`);
+          const response = await axios.get(`${getApiUrl()}/api/auth/profile`);
           setUser(response.data);
         } catch (error) {
           console.error('Auth check failed:', error);
@@ -71,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/signin`, {
+      const response = await axios.post(`${getApiUrl()}/api/auth/signin`, {
         email,
         password
       });
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signup = async (userData: any) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/signup`, userData);
+      const response = await axios.post(`${getApiUrl()}/api/auth/signup`, userData);
 
       const { user: newUser, token: authToken } = response.data;
       

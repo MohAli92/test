@@ -19,6 +19,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Person, Edit, Delete, Save, Cancel } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 
 interface UserProfile {
   _id: string;
@@ -40,105 +41,50 @@ const Profile: React.FC = () => {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  const fetchUserData = async () => {
-    if (!user) {
-      setError('Please sign in to view your profile');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      console.log('Fetching user data for user ID:', user._id);
-      
-      // Fetch the full profile using the user ID from AuthContext
-      const profileResponse = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/users/${user._id}`);
-      console.log('Profile data response:', profileResponse.data);
-      
-      setProfile(profileResponse.data);
-      setError(null);
-    } catch (err: any) {
-      console.error('Error fetching user data:', err);
-      setError(err.response?.data?.message || 'Failed to load user data. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUserData();
+    const fetchProfile = async () => {
+      try {
+        if (!user?._id) return;
+        const profileResponse = await axios.get(`${getApiUrl()}/api/users/${user._id}`);
+        setProfile(profileResponse.data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    if (user?._id) {
+      fetchProfile();
+    }
   }, [user]);
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?._id) {
-      setError('User not authenticated');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
+    if (!profile?._id) return;
+    
     try {
-      const response = await axios.put(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/users/${profile._id}`, profile);
-      if (response.data) {
-        setProfile(response.data);
-        setSuccess('Profile updated successfully!');
-        setEditing(false);
-      }
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || 'Failed to update profile. Please try again.');
-      } else {
-        setError('Failed to update profile. Please try again.');
-      }
+      setLoading(true);
+      const response = await axios.put(`${getApiUrl()}/api/users/${profile._id}`, profile);
+      setProfile(response.data);
+      alert('Profile updated successfully!');
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      alert(error.response?.data?.error || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!profile?._id) {
-      setError('User not authenticated');
-      return;
-    }
-
-    setDeleting(true);
-    setError(null);
-
-    try {
-      console.log('Starting account deletion process for user:', profile._id);
-      
-      // Delete user from MongoDB
-      console.log('Deleting user from MongoDB...');
-      await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/users/${profile._id}`);
-      console.log('MongoDB user deleted successfully');
-
-      setSuccess('Account deleted successfully');
-      setShowDeleteDialog(false);
-      setDeletePassword('');
-      
-      // Logout and redirect to login
-      setTimeout(() => {
+    if (!profile?._id) return;
+    
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        await axios.delete(`${getApiUrl()}/api/users/${profile._id}`);
         logout();
-        navigate('/login');
-      }, 2000);
-
-    } catch (err: any) {
-      console.error('Error deleting account:', err);
-      if (axios.isAxiosError(err)) {
-        console.error('Axios error details:', {
-          status: err.response?.status,
-          data: err.response?.data,
-          message: err.message
-        });
-        setError(`Failed to delete account: ${err.response?.data?.error || err.message}`);
-      } else {
-        setError(`Failed to delete account: ${err.message}`);
+      } catch (error: any) {
+        console.error('Error deleting account:', error);
+        alert(error.response?.data?.error || 'Failed to delete account');
       }
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -198,7 +144,7 @@ const Profile: React.FC = () => {
           </Alert>
         )}
 
-        <form onSubmit={handleProfileUpdate}>
+        <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="h6" fontWeight={600}>
@@ -228,7 +174,17 @@ const Profile: React.FC = () => {
                     startIcon={<Cancel />}
                     onClick={() => {
                       setEditing(false);
-                      fetchUserData();
+                      if (user?._id) {
+                        const refreshProfile = async () => {
+                          try {
+                            const profileResponse = await axios.get(`${getApiUrl()}/api/users/${user._id}`);
+                            setProfile(profileResponse.data);
+                          } catch (error) {
+                            console.error('Error refreshing profile:', error);
+                          }
+                        };
+                        refreshProfile();
+                      }
                     }}
                     variant="outlined"
                     size="small"

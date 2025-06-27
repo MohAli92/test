@@ -1,207 +1,237 @@
-# Share Dish - MongoDB Authentication
+# Share Dish - Food Sharing Platform
 
-Share Dish is a food sharing platform where users can share and discover meals. This version uses MongoDB for authentication instead of Firebase.
+A full-stack web application for sharing food items with your community. Built with React, Node.js, and MongoDB.
 
-## Features
+## 🌟 Features
 
-- User authentication with MongoDB and JWT
-- WhatsApp verification for phone numbers
-- Create, edit, and delete food posts
-- Real-time messaging between users
-- User profiles and account management
-- Image upload with Cloudinary
+- **User Authentication**: Secure login/signup with JWT
+- **Food Posts**: Create, edit, and delete food sharing posts
+- **Image Upload**: Drag-and-drop image upload with Cloudinary
+- **Real-time Chat**: WhatsApp integration for communication
+- **Responsive Design**: Works on desktop and mobile devices
+- **CodeSpaces Ready**: Full GitHub CodeSpaces support
 
-## Prerequisites
+## 🚀 Quick Start
 
-- Node.js (v14 or higher)
-- MongoDB Atlas account
-- Twilio account (for WhatsApp verification)
-- Cloudinary account (for image uploads)
+### Option 1: GitHub CodeSpaces (Recommended)
 
-## Environment Variables
+1. **Open in CodeSpaces**:
+   - Click the green "Code" button on this repository
+   - Select "Open with Codespaces"
+   - Choose "Create codespace on main"
 
-### Server (.env file in server directory)
+2. **Run Setup Script**:
+   ```bash
+   bash setup-codespaces.sh
+   ```
 
-Create a `.env` file in the `server` directory with the following variables:
+3. **Configure Environment**:
+   - Update `server/.env` with your actual credentials
+   - See [Environment Variables](#environment-variables) section
 
-```env
-MONGO_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_jwt_secret_key_here
-PORT=5000
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-```
+4. **Start the Application**:
+   ```bash
+   # Terminal 1 - Start Server
+   cd server && npm start
+   
+   # Terminal 2 - Start Client
+   cd client && npm start
+   ```
 
-### Client (.env file in client directory)
+5. **Access the App**:
+   - Server: `https://localhost:5000`
+   - Client: `https://localhost:3000`
+   - Ports are automatically forwarded in CodeSpaces
 
-Create a `.env` file in the `client` directory:
+### Option 2: Local Development
 
-```env
-REACT_APP_API_URL=http://localhost:5000
-```
-
-## Installation
-
-1. **Clone the repository**
+1. **Clone the repository**:
    ```bash
    git clone <repository-url>
    cd share-dish-project-main
    ```
 
-2. **Install server dependencies**
+2. **Install dependencies**:
    ```bash
-   cd server
-   npm install
+   # Install server dependencies
+   cd server && npm install
+   
+   # Install client dependencies
+   cd ../client && npm install
    ```
 
-3. **Install client dependencies**
+3. **Set up environment variables**:
+   - Copy `server/.env.example` to `server/.env`
+   - Update with your actual credentials
+
+4. **Start the application**:
    ```bash
-   cd ../client
-   npm install
+   # Terminal 1 - Start Server
+   cd server && npm start
+   
+   # Terminal 2 - Start Client
+   cd client && npm start
    ```
 
-4. **Set up environment variables**
-   - Create `.env` files in both `server` and `client` directories
-   - Add the required environment variables as shown above
+## 🔧 Environment Variables
 
-## Running the Application
+### Server (.env)
 
-1. **Start the server**
-   ```bash
-   cd server
-   npm start
-   ```
-   The server will run on `http://localhost:5000`
+```env
+# MongoDB Configuration
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/share-dish
 
-2. **Start the client**
-   ```bash
-   cd client
-   npm start
-   ```
-   The client will run on `http://localhost:3000`
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key
 
-## API Endpoints
+# Twilio Configuration (for WhatsApp)
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=whatsapp:+1234567890
+
+# Cloudinary Configuration (for image uploads)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+```
+
+### Client (.env)
+
+```env
+# React App Environment Variables
+REACT_APP_CODESPACES=true
+REACT_APP_API_URL=http://localhost:5000
+```
+
+## 📋 Prerequisites
+
+### For Local Development:
+- Node.js (v16 or higher)
+- npm or yarn
+- MongoDB Atlas account
+- Twilio account (for WhatsApp)
+- Cloudinary account (for image uploads)
+
+### For CodeSpaces:
+- GitHub account
+- No local setup required!
+
+## 🛠️ API Endpoints
 
 ### Authentication
-- `POST /api/auth/signup` - Register a new user
-- `POST /api/auth/signin` - Sign in user
-- `GET /api/auth/profile` - Get current user profile
-- `POST /api/auth/send-whatsapp-code` - Send WhatsApp verification code
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/signin` - User login
+- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/send-whatsapp-code` - Send WhatsApp verification
 - `POST /api/auth/verify-whatsapp-code` - Verify WhatsApp code
-
-### Users
-- `GET /api/users/:userId` - Get user by ID
-- `PUT /api/users/:userId` - Update user profile
-- `DELETE /api/users/:userId` - Delete user account
 
 ### Posts
 - `GET /api/posts` - Get all posts
 - `POST /api/posts` - Create new post
 - `PATCH /api/posts/:id` - Update post
 - `DELETE /api/posts/:id` - Delete post
-- `PATCH /api/posts/:id/reserve` - Mark post as reserved
+- `PATCH /api/posts/:id/reserve` - Reserve post
 - `POST /api/posts/upload` - Upload image
 
+### Users
+- `GET /api/users/:id` - Get user profile
+- `PUT /api/users/:id` - Update user profile
+- `DELETE /api/users/:id` - Delete user account
+
 ### Chat
-- `POST /api/chat/start` - Start a new chat
-- `GET /api/chat/user/:userId` - Get user's chats
+- `GET /api/chat/user/:userId` - Get user chats
+- `POST /api/chat/start` - Start new chat
 - `POST /api/chat/:postId/message` - Send message
 - `GET /api/chat/:postId/:userId1/:userId2` - Get chat messages
 
-## Database Schema
+## 🔒 Security Features
 
-### User
-```javascript
-{
-  _id: ObjectId,
-  email: String (required, unique),
-  password: String (required, hashed),
-  firstName: String,
-  lastName: String,
-  gender: String (enum: ['male', 'female', 'other', 'prefer-not-to-say']),
-  phone: String (unique),
-  phoneVerified: Boolean,
-  createdAt: Date
-}
-```
-
-### Post
-```javascript
-{
-  _id: ObjectId,
-  user: ObjectId (ref: 'User'),
-  photo: String,
-  ingredients: [String],
-  allergies: [String],
-  city: String,
-  address: String,
-  time: Date,
-  description: String,
-  reserved: Boolean,
-  createdAt: Date
-}
-```
-
-### Chat
-```javascript
-{
-  _id: ObjectId,
-  post: ObjectId (ref: 'Post'),
-  users: [ObjectId] (ref: 'User'),
-  messages: [{
-    sender: ObjectId (ref: 'User'),
-    text: String,
-    createdAt: Date
-  }],
-  createdAt: Date
-}
-```
-
-## WhatsApp Verification Setup
-
-1. Create a Twilio account
-2. Get your Account SID and Auth Token
-3. Set up WhatsApp Sandbox by sending "join government-think" to +14155238886
-4. Add the Twilio credentials to your server `.env` file
-
-## Cloudinary Setup
-
-1. Create a Cloudinary account
-2. Get your Cloud Name, API Key, and API Secret
-3. Add the credentials to your server `.env` file
-
-## Security Features
-
+- JWT-based authentication
 - Password hashing with bcrypt
-- JWT token authentication
-- Input validation and sanitization
-- CORS configuration
+- CORS protection
+- Input validation
+- File upload restrictions
 - Environment variable protection
 
-## Technologies Used
+## 🌐 CodeSpaces Configuration
 
-### Backend
-- Node.js
-- Express.js
-- MongoDB with Mongoose
-- JWT for authentication
-- bcryptjs for password hashing
-- Twilio for WhatsApp integration
-- Cloudinary for image uploads
-- Socket.io for real-time messaging
+The project is fully configured for GitHub CodeSpaces with:
 
-### Frontend
-- React with TypeScript
-- Material-UI for components
-- React Router for navigation
-- Axios for API calls
-- Context API for state management
+- **Dev Container**: Pre-configured development environment
+- **Port Forwarding**: Automatic port forwarding for 3000 and 5000
+- **Dynamic URLs**: Automatic API URL detection
+- **CORS Support**: Configured for CodeSpaces domains
+- **Environment Detection**: Automatic environment variable setup
 
-## Contributing
+### CodeSpaces Features:
+
+1. **Automatic Setup**: Run `bash setup-codespaces.sh` for one-click setup
+2. **Dynamic API URLs**: Automatically detects CodeSpaces environment
+3. **Port Forwarding**: No manual port configuration needed
+4. **CORS Handling**: Pre-configured for CodeSpaces domains
+5. **Environment Variables**: Automatic detection and setup
+
+## 🐛 Troubleshooting
+
+### Common Issues:
+
+1. **CORS Errors**:
+   - Ensure server is running on port 5000
+   - Check that client is making requests to correct URL
+   - In CodeSpaces, URLs are automatically detected
+
+2. **MongoDB Connection Failed**:
+   - Verify MONGO_URI in server/.env
+   - Check network connectivity
+   - Ensure IP is whitelisted in MongoDB Atlas
+
+3. **Image Upload Failed**:
+   - Verify Cloudinary credentials
+   - Check file size (max 10MB)
+   - Ensure file is an image
+
+4. **WhatsApp Verification Failed**:
+   - Verify Twilio credentials
+   - Check phone number format (include country code)
+   - Ensure Twilio WhatsApp is enabled
+
+### CodeSpaces Specific:
+
+1. **Ports Not Accessible**:
+   - Check port forwarding in CodeSpaces
+   - Ensure both server and client are running
+   - Use the provided URLs in the terminal output
+
+2. **API Calls Failing**:
+   - The app automatically detects CodeSpaces environment
+   - Check browser console for specific errors
+   - Verify server is running and accessible
+
+## 📱 Features
+
+- **User Registration/Login**: Secure authentication system
+- **Food Post Creation**: Share food items with images and details
+- **Real-time Chat**: WhatsApp integration for communication
+- **Image Upload**: Drag-and-drop image upload
+- **Post Management**: Edit, delete, and reserve posts
+- **Responsive Design**: Mobile-friendly interface
+- **Search and Filter**: Find specific food items
+- **User Profiles**: Manage personal information
+
+## 🛡️ Security
+
+- JWT token-based authentication
+- Password hashing with bcrypt
+- Input validation and sanitization
+- CORS protection
+- Environment variable protection
+- File upload restrictions
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -209,6 +239,26 @@ REACT_APP_API_URL=http://localhost:5000
 4. Test thoroughly
 5. Submit a pull request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+If you encounter any issues:
+
+1. Check the troubleshooting section
+2. Review the console logs
+3. Verify environment variables
+4. Create an issue with detailed error information
+
+## 🎯 Roadmap
+
+- [ ] Push notifications
+- [ ] Advanced search filters
+- [ ] User ratings and reviews
+- [ ] Payment integration
+- [ ] Mobile app
+- [ ] Social media sharing
+- [ ] Recipe suggestions
+- [ ] Nutritional information 

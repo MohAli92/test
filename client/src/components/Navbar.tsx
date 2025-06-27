@@ -6,6 +6,7 @@ import MessageIcon from '@mui/icons-material/Message';
 import AddIcon from '@mui/icons-material/Add';
 import PersonIcon from '@mui/icons-material/Person';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiUrl } from '../utils/api';
 import axios from 'axios';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -20,19 +21,18 @@ const Navbar: React.FC = () => {
       if (!user?._id) return;
       
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/messages/unread/${user._id}`);
-        setUnreadCount(response.data.count);
-      } catch (err) {
-        console.error('Error fetching unread count:', err);
+        const response = await axios.get(`${getApiUrl()}/api/messages/unread/${user._id}`);
+        setUnreadCount(response.data.count || 0);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
       }
     };
 
     fetchUnreadCount();
-    // Set up polling for unread messages
     const interval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
-
+    
     return () => clearInterval(interval);
-  }, [user?._id]);
+  }, [user]);
 
   const handleLogout = async () => {
     try {

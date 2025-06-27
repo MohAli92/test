@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiUrl } from '../utils/api';
 import {
   Container,
   Typography,
@@ -62,23 +63,17 @@ const Messages: React.FC = () => {
       
       try {
         setLoading(true);
-        setError(null);
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/user/${user._id}`);
+        const response = await axios.get(`${getApiUrl()}/api/chat/user/${user._id}`);
         setChats(response.data);
-      } catch (err) {
-        console.error('Error fetching chats:', err);
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.error || 'Failed to load conversations. Please try again later.');
-        } else {
-          setError('Failed to load conversations. Please try again later.');
-        }
+      } catch (error) {
+        console.error('Error fetching chats:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchChats();
-  }, [user?._id]);
+  }, [user]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !selectedChat || !user?._id) return;
@@ -99,14 +94,16 @@ const Messages: React.FC = () => {
         text: message
       });
 
-      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/${selectedChat.post._id}/message`, {
+      const messageData = {
         sender: user._id,
         receiver: otherUser._id,
         text: message
-      });
+      };
 
-      // Refresh the selected chat
-      const chatResponse = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/${selectedChat.post._id}/${user._id}/${otherUser._id}`);
+      await axios.post(`${getApiUrl()}/api/chat/${selectedChat.post._id}/message`, messageData);
+      
+      // Refresh chat messages
+      const chatResponse = await axios.get(`${getApiUrl()}/api/chat/${selectedChat.post._id}/${user._id}/${otherUser._id}`);
       const updatedChat = { ...selectedChat, messages: chatResponse.data };
       setSelectedChat(updatedChat);
       
@@ -116,15 +113,9 @@ const Messages: React.FC = () => {
       ));
       
       setMessage('');
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      if (axios.isAxiosError(err)) {
-        console.error('Response data:', err.response?.data);
-        console.error('Response status:', err.response?.status);
-        setError(`Failed to send message: ${err.response?.data?.error || err.message}`);
-      } else {
-        setError('Failed to send message. Please try again.');
-      }
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      setError(error.response?.data?.error || 'Failed to send message');
     } finally {
       setSending(false);
     }

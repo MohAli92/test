@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Box, Typography, Paper, Button, CircularProgress, Chip, Grid, Card, CardContent, CardMedia } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import { Message as MessageIcon, LocationOn, AccessTime, Restaurant } from '@mui/icons-material';
+import { getApiUrl } from '../utils/api';
 
 interface Post {
   _id: string;
@@ -33,55 +34,64 @@ const PostDetails: React.FC = () => {
 
   useEffect(() => {
     const fetchPost = async () => {
-      setLoading(true);
       try {
-        const postRes = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts`);
-        const found = postRes.data.find((p: Post) => p._id === id);
-        setPost(found);
-      } catch (err) {
-        setError('Failed to load post.');
+        setLoading(true);
+        const postRes = await axios.get(`${getApiUrl()}/api/posts`);
+        const foundPost = postRes.data.find((p: any) => p._id === id);
+        if (foundPost) {
+          setPost(foundPost);
+        } else {
+          setError('Post not found');
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError('Failed to load post');
       } finally {
         setLoading(false);
       }
     };
+
     fetchPost();
   }, [id]);
 
-  const handleContactPublisher = async () => {
-    if (!user?._id || !post || !post.user?._id) return;
+  const handleStartChat = async () => {
+    if (!user) {
+      alert('Please login to start a chat');
+      return;
+    }
+
     try {
-      // Create or fetch the chat
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/chat/start`, {
+      const response = await axios.post(`${getApiUrl()}/api/chat/start`, {
         postId: post._id,
-        userId1: user._id,
-        userId2: post.user._id,
+        userId: user._id
       });
-      // Navigate to messages and pass chatId in state
-      navigate('/messages', { state: { chatId: response.data._id } });
-    } catch (err) {
-      alert('Failed to start chat.');
+      navigate('/messages');
+    } catch (error: any) {
+      console.error('Error starting chat:', error);
+      alert(error.response?.data?.error || 'Failed to start chat');
     }
   };
 
   const handleReserve = async () => {
-    if (!post || !user?._id) return;
-    
     try {
-      await axios.patch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/${post._id}/reserve`);
+      await axios.patch(`${getApiUrl()}/api/posts/${post._id}/reserve`);
       setPost({ ...post, reserved: true });
-    } catch (err) {
-      setError('Failed to reserve post.');
+      alert('Post reserved successfully!');
+    } catch (error: any) {
+      console.error('Error reserving post:', error);
+      alert(error.response?.data?.error || 'Failed to reserve post');
     }
   };
 
   const handleDelete = async () => {
-    if (!post || !user?._id) return;
-    
-    try {
-      await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/${post._id}`);
-      navigate('/');
-    } catch (err) {
-      setError('Failed to delete post.');
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await axios.delete(`${getApiUrl()}/api/posts/${post._id}`);
+        navigate('/');
+      } catch (error: any) {
+        console.error('Error deleting post:', error);
+        alert(error.response?.data?.error || 'Failed to delete post');
+      }
     }
   };
 
@@ -179,7 +189,7 @@ const PostDetails: React.FC = () => {
                   variant="contained"
                   color="primary"
                   startIcon={<MessageIcon />}
-                  onClick={handleContactPublisher}
+                  onClick={handleStartChat}
                   disabled={!user?._id}
                   sx={{ minWidth: 150 }}
                 >

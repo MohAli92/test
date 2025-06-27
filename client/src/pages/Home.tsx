@@ -22,6 +22,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { getApiUrl } from '../utils/api';
 
 interface Post {
   _id: string;
@@ -49,22 +50,19 @@ const Home: React.FC = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuPostId, setMenuPostId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts`);
-        console.log('Fetched posts:', response.data);
-        setPosts(response.data);
-      } catch (err) {
-        console.error('Error fetching posts:', err);
-        setError('Failed to load posts. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${getApiUrl()}/api/posts`);
+      setPosts(response.data);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPosts();
   }, []);
 
@@ -74,21 +72,22 @@ const Home: React.FC = () => {
   };
 
   const handleDelete = async (postId: string) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
-    try {
-      await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/${postId}`);
-      setPosts(posts.filter(p => p._id !== postId));
-    } catch (err) {
-      alert('Failed to delete post.');
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await axios.delete(`${getApiUrl()}/api/posts/${postId}`);
+        fetchPosts();
+      } catch (error) {
+        console.error('Error deleting post:', error);
+      }
     }
   };
 
   const handleReserve = async (postId: string) => {
     try {
-      const response = await axios.patch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/${postId}/reserve`);
-      setPosts(posts.map(p => p._id === postId ? { ...p, reserved: true } : p));
-    } catch (err) {
-      alert('Failed to mark as reserved.');
+      const response = await axios.patch(`${getApiUrl()}/api/posts/${postId}/reserve`);
+      fetchPosts();
+    } catch (error) {
+      console.error('Error reserving post:', error);
     }
   };
 

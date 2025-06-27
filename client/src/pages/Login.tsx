@@ -1,6 +1,8 @@
 import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiUrl } from '../utils/api';
+import axios from 'axios';
 import {
   Box, Button, Container, TextField, Typography, Paper, Stack, Alert, Link,
   FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, InputAdornment
@@ -8,7 +10,6 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import axios from 'axios';
 import { Email, Lock, Person, Wc, CalendarToday, Phone } from '@mui/icons-material';
 
 const Login: React.FC = () => {
@@ -26,6 +27,9 @@ const Login: React.FC = () => {
   const [whatsAppCode, setWhatsAppCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [codeVerified, setCodeVerified] = useState(false);
+  const [whatsAppLoading, setWhatsAppLoading] = useState(false);
+  const [whatsAppCodeSent, setWhatsAppCodeSent] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const navigate = useNavigate();
   const { login, signup } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
@@ -46,36 +50,30 @@ const Login: React.FC = () => {
   };
 
   const handleSendWhatsAppCode = async () => {
-    setError(null);
-    if (!phone || phone.length < 8) {
-      setError('Please enter a valid WhatsApp number (with country code)');
-      return;
-    }
-    setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-whatsapp-code`, { phone });
-      setCodeSent(true);
-    } catch (err: any) {
-      setError('Failed to send WhatsApp code. Please try again.');
+      setWhatsAppLoading(true);
+      await axios.post(`${getApiUrl()}/api/auth/send-whatsapp-code`, { phone });
+      setWhatsAppCodeSent(true);
+      alert('WhatsApp verification code sent!');
+    } catch (error: any) {
+      console.error('Error sending WhatsApp code:', error);
+      alert(error.response?.data?.error || 'Failed to send WhatsApp code');
     } finally {
-      setLoading(false);
+      setWhatsAppLoading(false);
     }
   };
 
   const handleVerifyWhatsAppCode = async () => {
-    setError(null);
-    if (!whatsAppCode || whatsAppCode.length !== 6) {
-      setError('Please enter the 6-digit code sent to your WhatsApp');
-      return;
-    }
-    setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-whatsapp-code`, { phone, code: whatsAppCode });
-      setCodeVerified(true);
-    } catch (err: any) {
-      setError('Invalid or expired code. Please try again.');
+      setWhatsAppLoading(true);
+      await axios.post(`${getApiUrl()}/api/auth/verify-whatsapp-code`, { phone, code: whatsAppCode });
+      setPhoneVerified(true);
+      alert('Phone number verified successfully!');
+    } catch (error: any) {
+      console.error('Error verifying WhatsApp code:', error);
+      alert(error.response?.data?.error || 'Failed to verify WhatsApp code');
     } finally {
-      setLoading(false);
+      setWhatsAppLoading(false);
     }
   };
 
@@ -149,15 +147,15 @@ const Login: React.FC = () => {
         const userData = {
           email,
           password,
-          firstName,
-          lastName,
-          gender,
-          phone,
-          phoneVerified: true
+            firstName,
+            lastName,
+            gender,
+            phone,
+            phoneVerified: true
         };
 
         await signup(userData);
-        navigate('/');
+          navigate('/');
       } else {
         // Sign In with MongoDB
         await login(email, password);
@@ -165,7 +163,7 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Authentication error:', err);
-      setError(err.message || 'Authentication failed. Please try again.');
+          setError(err.message || 'Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }

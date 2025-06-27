@@ -1,6 +1,7 @@
 import React, { useState, useRef, DragEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getApiUrl } from '../utils/api';
 import {
   Container,
   Paper,
@@ -40,18 +41,18 @@ const AddPost: React.FC = () => {
   const [pickupTime, setPickupTime] = useState('');
   const [description, setDescription] = useState('');
 
-  const handlePhotoUpload = async (file: File) => {
+  const handleImageUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
 
     try {
       setLoading(true);
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/upload`, formData);
-      setPhoto(response.data.url);
+      const response = await axios.post(`${getApiUrl()}/api/posts/upload`, formData);
+      setPhoto(response.data.imageUrl);
       setError(null);
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError('Failed to upload photo. Please try again.');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setError('Failed to upload image. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ const AddPost: React.FC = () => {
   const handleFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      await handlePhotoUpload(file);
+      await handleImageUpload(file);
     }
   };
 
@@ -82,7 +83,7 @@ const AddPost: React.FC = () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
-        await handlePhotoUpload(file);
+        await handleImageUpload(file);
       } else {
         setError('Please upload an image file.');
       }
@@ -110,47 +111,39 @@ const AddPost: React.FC = () => {
     );
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!user?._id) {
-      setError('You must be logged in to create a post');
-      return;
-    }
-
-    if (!isFormValid()) {
-      setError('Please fill in all required fields');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!photo) {
+      alert('Please upload an image first');
       return;
     }
 
     try {
       setLoading(true);
-      setError(null);
-
       const postData = {
-        user: user._id,
-        photo,
-        ingredients: ingredients.map(i => `${i.name} (${i.quantity})`),
-        allergies,
-        city,
-        address,
-        time: new Date(pickupTime),
+        title: '',
         description,
-        reserved: false
+        imageUrl: photo,
+        location: { city, address },
+        price: '',
+        category: '',
+        expiryDate: '',
+        allergens: allergies.filter(a => a.trim() !== ''),
+        servingSize: '',
+        dietaryInfo: [],
+        pickupInstructions: '',
+        contactInfo: {
+          phone: user?.phone || '',
+          email: user?.email || ''
+        }
       };
 
-      console.log('Submitting post data:', postData);
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts`, postData);
-      console.log('Post created successfully:', response.data);
-      
-      // Navigate to home page after successful post creation
+      const response = await axios.post(`${getApiUrl()}/api/posts`, postData);
       navigate('/');
-    } catch (err) {
-      console.error('Error creating post:', err);
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || 'Failed to create post. Please try again.');
-      } else {
-        setError('Failed to create post. Please try again.');
-      }
+    } catch (error: any) {
+      console.error('Error creating post:', error);
+      alert(error.response?.data?.error || 'Failed to create post');
     } finally {
       setLoading(false);
     }

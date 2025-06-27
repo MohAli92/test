@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container, Paper, Typography, TextField, Button, Box, Stack, Alert, CircularProgress
 } from '@mui/material';
+import { getApiUrl } from '../utils/api';
 import axios from 'axios';
 
 const EditPost: React.FC = () => {
@@ -21,43 +22,50 @@ const EditPost: React.FC = () => {
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [pickupTime, setPickupTime] = useState('');
+  const [title, setTitle] = useState('');
+  const [allergies, setAllergies] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts`);
-        const found = response.data.find((p: any) => p._id === id);
-        console.log('Fetched post for editing:', found);
-        if (!found) throw new Error('Post not found');
-        setPost(found);
-        setPhoto(found.photo);
-        setDescription(found.description);
-        setIngredients(found.ingredients.join(', '));
-        setCity(found.city);
-        setAddress(found.address);
-        setPickupTime(new Date(found.time).toISOString().slice(0, 16));
-      } catch (err) {
-        setError('Failed to load post.');
+        const response = await axios.get(`${getApiUrl()}/api/posts`);
+        const foundPost = response.data.find((p: any) => p._id === id);
+        if (foundPost) {
+          setPost(foundPost);
+          setTitle(foundPost.title || '');
+          setDescription(foundPost.description || '');
+          setPhoto(foundPost.photo || '');
+          setCity(foundPost.city || '');
+          setAddress(foundPost.address || '');
+          setPickupTime(foundPost.time ? new Date(foundPost.time) : new Date());
+          setIngredients(foundPost.ingredients || []);
+          setAllergies(foundPost.allergies || []);
+        } else {
+          setError('Post not found');
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError('Failed to load post');
       } finally {
         setLoading(false);
       }
     };
+
     fetchPost();
   }, [id]);
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handlePhotoUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
+
     try {
       setSaving(true);
-      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/upload`, formData);
-      setPhoto(response.data.url);
-      setError(null);
-    } catch (err) {
-      setError('Failed to upload photo.');
+      const response = await axios.post(`${getApiUrl()}/api/posts/upload`, formData);
+      setPhoto(response.data.imageUrl);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image');
     } finally {
       setSaving(false);
     }
@@ -65,20 +73,23 @@ const EditPost: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setError(null);
+    
     try {
-      await axios.patch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/posts/${id}`, {
-        photo,
+      setSaving(true);
+      await axios.patch(`${getApiUrl()}/api/posts/${id}`, {
+        title,
         description,
-        ingredients: ingredients.split(',').map((i) => i.trim()),
+        photo,
         city,
         address,
-        time: new Date(pickupTime)
+        time: pickupTime,
+        ingredients: ingredients.map(i => `${i.name} (${i.quantity})`),
+        allergies
       });
       navigate('/');
-    } catch (err) {
-      setError('Failed to update post.');
+    } catch (error: any) {
+      console.error('Error updating post:', error);
+      alert(error.response?.data?.error || 'Failed to update post');
     } finally {
       setSaving(false);
     }

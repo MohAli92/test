@@ -1,53 +1,85 @@
 #!/bin/bash
 
-echo "🚀 Setting up Share Dish for CodeSpaces..."
+echo "🚀 Setting up Share Dish project for GitHub CodeSpaces..."
 
 # Check if we're in CodeSpaces
 if [ -n "$CODESPACES" ]; then
-    echo "📦 Detected CodeSpaces environment"
-    
-    # Install dependencies
-    echo "📥 Installing server dependencies..."
-    npm install
-    
-    echo "📥 Installing client dependencies..."
-    cd client && npm install && cd ..
-    
-    # Create environment files if they don't exist
-    if [ ! -f "server/.env" ]; then
-        echo "📝 Creating server .env file..."
-        cat > server/.env << EOF
-MONGO_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_jwt_secret_key_here
-PORT=5000
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-EOF
-        echo "⚠️  Please update server/.env with your actual credentials"
-    fi
-    
-    if [ ! -f "client/.env" ]; then
-        echo "📝 Creating client .env file..."
-        cat > client/.env << EOF
-REACT_APP_API_URL=http://localhost:5000
-EOF
-    fi
-    
-    echo "✅ Setup complete!"
-    echo "📋 Next steps:"
-    echo "1. Update server/.env with your MongoDB and other API credentials"
-    echo "2. Run 'npm start' in the server directory"
-    echo "3. Run 'npm start' in the client directory"
-    echo "4. Open the forwarded ports in CodeSpaces"
-    
+    echo "✅ Running in GitHub CodeSpaces"
+    export REACT_APP_CODESPACES=true
 else
-    echo "💻 Local environment detected"
-    echo "📥 Installing dependencies..."
-    npm install
-    cd client && npm install && cd ..
-    echo "✅ Setup complete!"
-fi 
+    echo "ℹ️  Running locally"
+    export REACT_APP_CODESPACES=false
+fi
+
+# Install server dependencies
+echo "📦 Installing server dependencies..."
+cd server
+npm install
+
+# Create .env file for server if it doesn't exist
+if [ ! -f .env ]; then
+    echo "📝 Creating server .env file..."
+    cat > .env << EOF
+# MongoDB Configuration
+MONGO_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/share-dish?retryWrites=true&w=majority
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Twilio Configuration (for WhatsApp)
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=whatsapp:+1234567890
+
+# Cloudinary Configuration (for image uploads)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# CodeSpaces Configuration
+CODESPACES=$CODESPACES
+EOF
+    echo "⚠️  Please update the .env file with your actual credentials!"
+fi
+
+# Install client dependencies
+echo "📦 Installing client dependencies..."
+cd ../client
+npm install
+
+# Create .env file for client if it doesn't exist
+if [ ! -f .env ]; then
+    echo "📝 Creating client .env file..."
+    cat > .env << EOF
+# React App Environment Variables
+REACT_APP_CODESPACES=$REACT_APP_CODESPACES
+REACT_APP_API_URL=http://localhost:5000
+
+# Note: In CodeSpaces, the API URL will be dynamically detected
+# This is just a fallback for local development
+EOF
+fi
+
+# Go back to root
+cd ..
+
+echo "✅ Setup complete!"
+echo ""
+echo "📋 Next steps:"
+echo "1. Update server/.env with your actual credentials"
+echo "2. Run the server: cd server && npm start"
+echo "3. Run the client: cd client && npm start"
+echo ""
+echo "🌐 In CodeSpaces:"
+echo "- Server will be available at: https://localhost:5000"
+echo "- Client will be available at: https://localhost:3000"
+echo "- Ports are automatically forwarded in CodeSpaces"
+echo ""
+echo "🔧 Troubleshooting:"
+echo "- If you get CORS errors, check that the server is running"
+echo "- If MongoDB connection fails, verify your MONGO_URI"
+echo "- If image upload fails, check your Cloudinary credentials" 
