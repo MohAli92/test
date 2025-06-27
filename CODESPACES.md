@@ -184,4 +184,7 @@ Your setup is working correctly when:
 - ✅ User registration works
 - ✅ Image upload works
 - ✅ Messaging works
-- ✅ Health endpoint returns OK status 
+- ✅ Health endpoint returns OK status
+
+- In CodeSpaces, use the URLs shown in the CodeSpaces UI (port forwarding)
+- For local development, use http://localhost:3000 and http://localhost:5000 

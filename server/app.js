@@ -13,8 +13,7 @@ app.use(cors({
     
     // Allow localhost and CodeSpaces origins
     const allowedOrigins = [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
+      process.env.FRONTEND_URL,
       'https://*.github.dev',
       'https://*.githubusercontent.com'
     ];
@@ -104,8 +103,7 @@ mongoose.connect(MONGO_URI, {
         if (!origin) return callback(null, true);
         
         const allowedOrigins = [
-          'http://localhost:3000',
-          'http://127.0.0.1:3000',
+          process.env.FRONTEND_URL,
           'https://*.github.dev'
         ];
         
@@ -167,7 +165,7 @@ mongoose.connect(MONGO_URI, {
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📡 Server accessible at: http://localhost:${PORT}`);
-    if (process.env.CODESPACES) {
+    if (process.env.CODESPACES && process.env.CODESPACE_NAME && process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN) {
       console.log(`🌐 CodeSpaces URL: https://${process.env.CODESPACE_NAME}-${PORT}.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`);
     }
   });

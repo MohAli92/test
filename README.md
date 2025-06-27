@@ -182,7 +182,7 @@ The project is fully configured for GitHub CodeSpaces with:
 1. **CORS Errors**:
    - Ensure server is running on port 5000
    - Check that client is making requests to correct URL
-   - In CodeSpaces, URLs are automatically detected
+   - In CodeSpaces, use the URLs shown in the CodeSpaces UI (port forwarding)
 
 2. **MongoDB Connection Failed**:
    - Verify MONGO_URI in server/.env

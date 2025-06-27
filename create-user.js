@@ -10,7 +10,8 @@ async function createUser() {
       gender: 'prefer-not-to-say'
     };
 
-    const response = await axios.post('http://localhost:5000/api/users/profile', userData);
+    // NOTE: In CodeSpaces, use the forwarded URL, not localhost. For local dev, use localhost.
+    const response = await axios.post(process.env.API_URL + '/api/users/profile', userData);
     console.log('User created successfully:', response.data);
   } catch (error) {
     console.error('Error creating user:', error.response?.data || error.message);
